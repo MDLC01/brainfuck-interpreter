@@ -129,6 +129,9 @@ fn optimize_loop(commands: Vec<Command>) -> Command {
     /// construct [`Command::Move`]. Otherwise, returns [`None`].
     fn try_optimize_as_move(commands: &Vec<Command>) -> Option<Vec<(isize, u8)>> {
         let mut is_origin_decremented = false;
+        // Note that, if a cell is incremented multiple times, at different places within the loop,
+        // this will result in the vector containing multiple entries for this cell. Using a HashMap
+        // to solve this "problem" results in much higher optimization times, though. So Vec it is.
         let mut increments = Vec::new();
         let mut offset = 0;
         for command in commands {
