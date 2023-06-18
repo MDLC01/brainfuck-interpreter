@@ -64,6 +64,20 @@ In general, any loop that:
 
 is optimized.
 
+## Why bother optimizing?
+
+You might think performing those optimizations is useless. After all, we need to read the whole source code to optimize it. Why not just execute it instead?
+
+Although this reasoning is true for top-level optimizations, this is not the case for deeply-nested loops. For example, consider the following piece of code:
+
+```brainfuck
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+```
+
+This piece of code moves the pointer to the right by 200 cells. If this is in a loop, we need to count all those `>` every time we enter the loop. But it is obvious that, once we have counted them once, we should just "remember" how many there were, and move the cursor by this amount in a single command next time. This is exactly what we do, by first optimizing all those patterns throughout the whole source code, and then executing the optimized commands.
+
+Empirically, you can try running a complex Brainfuck program with minimal optimizations, and notice how slow it is compared to with optimizations enabled.
+
 ## Usage
 
 The interpreter accepts a path to a file containing Brainfuck source code as a command line argument. You can run the program with `--help` to get a list of available options.
