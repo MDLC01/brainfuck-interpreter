@@ -89,3 +89,11 @@ The following command runs the interpreter (`./brainfuck-interpreter`) on `progr
 ```shell
 $ ./brainfuck-interpreter program.bf --optimize-loops false --optimize-chunk-resets false
 ```
+
+## Build from sources
+
+If you have installed the [Rust toolchain](https://www.rust-lang.org/tools/install) on your machine, you can build an executable version of the interpreter with:
+
+```shell
+$ cargo build --release
+```
