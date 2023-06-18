@@ -1,0 +1,75 @@
+# Brainfuck Interpreter
+
+_This is one of my first Rust programs, which explains the ugliness of the code._
+
+A Brainfuck interpreter that uses an intermediate representation to optimize some patterns in order to make the execution faster.
+
+## About Brainfuck
+
+Brainfuck is an extremely basic programming language created by Urban Müller in 1993. A Brainfuck program consists of a string of characters each representing an instruction (or a comment). For the list of valid instructions, see [the Wikipedia article on Brainfuck](https://en.wikipedia.org/wiki/Brainfuck). Unlike most languages, there is no official specification for Brainfuck. This means behavior may vary slightly between interpreters. This interpreter uses the original interpreter as the definition of Brainfuck, with the exception that the array is expected to be infinitely expandable in both directions.
+
+## How it works
+
+There are multiple kinds of patterns the compiler is able to recognize and optimize. This list might be extended later, but it is hard to come up with patterns that are worth optimizing.
+
+Here is a non-exhaustive list of criteria a pattern should fulfill in order for it to be worth optimizing:
+
+- **High cost / complexity ratio.** A good pattern is very expensive to execute normally, but not too complex, making it easy to detect.
+- **Commonness.** A good pattern should be reasonably common, as we don't want to spend ages looking for a pattern we will only encounter once.
+
+### Adjacent opposite instructions
+
+Adjacent opposite instructions are instructions that trivially cancel each other are replaced with no-ops. Namely: `+-`, `-+`, `><`, and `<>`.
+
+### Too many {in,de}crements / lefts / rights
+
+When a sequence of more than one increments (resp., decrements, lefts, rights) is found, the amount of times the instruction appears is only counted once, and reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example `+++++` is reduced to a single `Add(5)` command, while `>>>>` is reduced to a single `Right(4)` command. This is especially good for deeply-nested instructions.
+
+### Resets
+
+A very common pattern in Brainfuck is to reset a cell with `[-]`, or `[+]`. This kind of pattern, where the body of a loop can be reduced to a single `Add(2n + 1)`, is optimised to a single `Reset` command.
+
+While we are at it, we can also detect when a chunk of adjacent cells are reset. This is usually not wirth the cost, which is why this specific optimization is disabled by default. For example, the following piece of code is detected as resetting a chunk of 5 adjacent cells:
+
+```brainfuck
+[-]>[+]>[---]>[+++]>[+-+]
+```
+
+### Moves
+
+The interpreter is also able to recognize moves. That is, when the value of a cell is added to one or multiple other cells, with an optional scaling factor. For example, consider the following piece of code:
+
+```brainfuck
+[->+<]
+```
+
+The code fragment above moves (or rather, adds) the value of the initial cell to the cell to its right. This is a pattern that is detected, and optimized, by the interpreter.
+
+A more convoluted example would be the following:
+
+```brainfuck
+[->+>++>+++<<<]
+```
+
+Here, if we let `n` be the initial value of the initial cell, we compute `n` in the second cell, `2 * n` in the third one, and `3 * n` in the fourth one. This pattern is also detected and optimized.
+
+In general, any loop that:
+
+- Is balanced (ends on the same cell it started),
+- Decrements its origin by one each iteration,
+- Increments other cells one or multiple times each iteration,
+- And *nothing else*;
+
+is optimized.
+
+## Usage
+
+The interpreter accepts a path to a file containing Brainfuck source code as a command line argument. You can run the program with `--help` to get a list of available options.
+
+### Example
+
+The following command runs the interpreter (`./brainfuck-interpreter`) on `program.bf` with minimal optimizations:
+
+```shell
+$ ./brainfuck-interpreter program.bf --optimize-loops false --optimize-chunk-resets false
+```
