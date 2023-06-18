@@ -17,19 +17,21 @@ Here is a non-exhaustive list of criteria a pattern should fulfill in order for 
 - **High cost / complexity ratio.** A good pattern is very expensive to execute normally, but not too complex, making it easy to detect.
 - **Commonness.** A good pattern should be reasonably common, as we don't want to spend ages looking for a pattern we will only encounter once.
 
+The following paragraphs describe patterns that are currently detected and optimized.
+
 ### Adjacent opposite instructions
 
-Adjacent opposite instructions are instructions that trivially cancel each other are replaced with no-ops. Namely: `+-`, `-+`, `><`, and `<>`.
+Adjacent opposite instructions are instructions that trivially cancel each other (namely: `+-`, `-+`, `><`, and `<>`). They are completely removed by the optimizer.
 
 ### Too many {in,de}crements / lefts / rights
 
-When a sequence of more than one increments (resp., decrements, lefts, rights) is found, the amount of times the instruction appears is only counted once, and reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example `+++++` is reduced to a single `Add(5)` command, while `>>>>` is reduced to a single `Right(4)` command. This is especially good for deeply-nested instructions.
+When a sequence of more than one increment (resp., decrement, left, right) is found, the amount of times the instruction appears is only counted once, and reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example `+++++` is reduced to a single `Add(5)` command, while `>>>>` is reduced to a single `Right(4)` command. This is especially efficient for deeply-nested instructions.
 
 ### Resets
 
-A very common pattern in Brainfuck is to reset a cell with `[-]`, or `[+]`. This kind of pattern, where the body of a loop can be reduced to a single `Add(2n + 1)`, is optimised to a single `Reset` command.
+A very common pattern in Brainfuck is to reset a cell with `[-]`, or `[+]`. This kind of pattern, where the body of a loop can be reduced to a single `Add(2n + 1)`, is optimized to a single `Reset` command.
 
-While we are at it, we can also detect when a chunk of adjacent cells are reset. This is usually not wirth the cost, which is why this specific optimization is disabled by default. For example, the following piece of code is detected as resetting a chunk of 5 adjacent cells:
+While we are at it, we can also detect when a chunk of adjacent cells are reset. This is usually not worth the cost, which is why this specific optimization is disabled by default. For example, the following piece of code is detected as resetting a chunk of 5 adjacent cells:
 
 ```brainfuck
 [-]>[+]>[---]>[+++]>[+-+]
@@ -43,7 +45,7 @@ The interpreter is also able to recognize moves. That is, when the value of a ce
 [->+<]
 ```
 
-The code fragment above moves (or rather, adds) the value of the initial cell to the cell to its right. This is a pattern that is detected, and optimized, by the interpreter.
+This code fragment moves (or rather, adds) the value of the initial cell to the cell to its right. This pattern is detected and optimized, by the interpreter.
 
 A more convoluted example would be the following:
 
@@ -55,7 +57,7 @@ Here, if we let `n` be the initial value of the initial cell, we compute `n` in 
 
 In general, any loop that:
 
-- Is balanced (ends on the same cell it started),
+- Is balanced (ends on the same cell as the one where it started),
 - Decrements its origin by one each iteration,
 - Increments other cells one or multiple times each iteration,
 - And *nothing else*;
