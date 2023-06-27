@@ -1,6 +1,6 @@
 # Brainfuck Interpreter
 
-_This is one of my first Rust programs, which explains the ugliness of the code._
+_This was one of my first Rust programs. Please excuse the ugly code._
 
 A Brainfuck interpreter that uses an intermediate representation to optimize some patterns in order to make the execution faster.
 
