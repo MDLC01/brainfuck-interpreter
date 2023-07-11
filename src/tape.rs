@@ -16,6 +16,7 @@ pub struct Tape {
     values: Vec<u8>,
     /// Index of the value that corresponds to the initial cell.
     origin: isize,
+    hex_output: bool,
     stdin: Box<dyn Iterator<Item=u8>>,
     stdout: Box<dyn io::Write>,
 }
@@ -26,6 +27,7 @@ impl Default for Tape {
             pointer: 0,
             values: Vec::new(),
             origin: 0,
+            hex_output: false,
             stdin: default_stdin(),
             stdout: default_stdout(),
         }
@@ -33,8 +35,11 @@ impl Default for Tape {
 }
 
 impl Tape {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(hex_output: bool) -> Self {
+        Self {
+            hex_output,
+            ..Self::default()
+        }
     }
 
     /// Moves the cell pointer to the right by the specified amount.
@@ -128,7 +133,11 @@ impl Tape {
 
     /// Outputs the value of the current cell to this tape's `stdout`.
     pub fn output(&mut self) {
-        write!(self.stdout, "{}", self.read() as char).unwrap()
+        if self.hex_output {
+            writeln!(self.stdout, "0x{:02x}", self.read()).unwrap()
+        } else {
+            write!(self.stdout, "{}", self.read() as char).unwrap()
+        }
     }
 
     /// Sets the value of the current cell from this tape's `stdin`.

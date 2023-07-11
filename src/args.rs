@@ -8,6 +8,9 @@ use clap::{ArgAction, Parser};
 pub struct Args {
     /// A path to the file containing the Brainfuck source code to execute.
     pub file: PathBuf,
+    /// If passed, `.` will write hex codes instead of ASCII values.
+    #[arg(long)]
+    pub hex_output: bool,
     /// Whether to enable loop optimizations (resets and moves).
     #[arg(long, default_value_t = true, action = ArgAction::Set)]
     pub optimize_loops: bool,
