@@ -43,6 +43,8 @@ enum Command {
     ///
     /// The pointer is *not* moved.
     Move(Vec<(isize, u8)>),
+    /// Prints the tape to standard error.
+    Debug,
 }
 
 impl Command {
@@ -65,10 +67,13 @@ impl Command {
 
 /// Loads Brainfuck instructions from an iterator and pushes them to a vector as [commands](Command)
 /// until the iterator yields `end`. Returns the constructed vector.
-fn load(instructions: &mut impl Iterator<Item=char>, end: Option<char>) -> Vec<Command> {
+fn load(instructions: &mut impl Iterator<Item=char>, end: Option<char>, debug: bool) -> Vec<Command> {
     let mut commands = Vec::new();
     loop {
         match instructions.next() {
+            c if c == end => {
+                return commands;
+            }
             Some('<') => {
                 match commands.last_mut() {
                     Some(Command::Right(amount)) => *amount -= 1,
@@ -94,7 +99,7 @@ fn load(instructions: &mut impl Iterator<Item=char>, end: Option<char>) -> Vec<C
                 }
             }
             Some('[') => {
-                let loop_content = load(instructions, Some(']'));
+                let loop_content = load(instructions, Some(']'), debug);
                 commands.push(Command::Loop(loop_content))
             }
             Some('.') => {
@@ -103,8 +108,8 @@ fn load(instructions: &mut impl Iterator<Item=char>, end: Option<char>) -> Vec<C
             Some(',') => {
                 commands.push(Command::Input)
             }
-            c if c == end => {
-                return commands;
+            Some('?') if debug => {
+                commands.push(Command::Debug)
             }
             Some(']') => {
                 panic!("Unexpected `]`")
@@ -296,6 +301,9 @@ fn execute(commands: &[Command], tape: &mut Tape) {
                 }
                 tape.write(0)
             }
+            Command::Debug => {
+                eprintln!("{}", tape)
+            }
         }
     }
 }
@@ -320,7 +328,7 @@ fn main() {
 
     let code = fs::read_to_string(&args.file).expect("Unable to read source file");
 
-    let commands = time("Loading source", args.time, || load(&mut code.chars(), None));
+    let commands = time("Loading source", args.time, || load(&mut code.chars(), None, args.debug));
 
     let optimized_commands = time("Optimizing", args.time, || optimize(commands, &args));
 

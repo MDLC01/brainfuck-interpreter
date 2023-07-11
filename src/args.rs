@@ -20,4 +20,7 @@ pub struct Args {
     /// If passed, prints timing information to `stderr`.
     #[arg(long)]
     pub time: bool,
+    /// If passed, `?` is treated as a command that prints the tape to standard error.
+    #[arg(long)]
+    pub debug: bool,
 }

@@ -149,14 +149,19 @@ impl Tape {
 
 impl Display for Tape {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let range = if self.values.is_empty() {
+            0..=0
+        } else {
+            self.first_index()..=self.last_index()
+        };
         // Print cell values
-        for i in self.first_index()..self.last_index() {
-            write!(f, "0x{:>02x} | ", self.read_cell(i))?;
+        for i in range.clone() {
+            write!(f, "| 0x{:>02x} ", self.read_cell(i))?;
         }
-        writeln!(f, "0x{:>02x}", self.read_cell(self.last_index()))?;
+        writeln!(f, "|")?;
         // Print cell indices
-        for i in -self.first_index()..=self.last_index() {
-            write!(f, "{:>4}   ", i)?;
+        for i in range {
+            write!(f, "  {:>4} ", i)?;
         }
         Ok(())
     }
