@@ -153,7 +153,7 @@ impl Display for Tape {
         for i in self.first_index()..self.last_index() {
             write!(f, "0x{:>02x} | ", self.read_cell(i))?;
         }
-        write!(f, "0x{:>02x}\n", self.read_cell(self.last_index()))?;
+        writeln!(f, "0x{:>02x}", self.read_cell(self.last_index()))?;
         // Print cell indices
         for i in -self.first_index()..=self.last_index() {
             write!(f, "{:>4}   ", i)?;

@@ -50,10 +50,7 @@ impl Command {
     ///
     /// A command is useful if it is not functionally equivalent to doing nothing.
     fn is_useful(&self) -> bool {
-        match self {
-            Self::Right(0) | Self::Add(0) => false,
-            _ => true,
-        }
+        !matches!(self, Self::Right(0) | Self::Add(0))
     }
 
     /// Tests if this comment increments the current cell by an odd amount.
