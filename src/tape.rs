@@ -11,13 +11,21 @@ fn default_stdout() -> Box<dyn io::Write> {
     Box::new(io::stdout())
 }
 
+/// A Brainfuck tape.
+///
+/// It is infinitely expandable in both directions, and each cell contains a `u8`.
 pub struct Tape {
+    /// The current position of the pointer.
     pointer: isize,
+    /// The values of the cells.
     values: Vec<u8>,
     /// Index of the value that corresponds to the initial cell.
     origin: isize,
+    /// Whether [`Tape::output`] should output hex values instead of ASCII values.
     hex_output: bool,
+    /// The iterator [`Tape::input`]  should read from.
     stdin: Box<dyn Iterator<Item=u8>>,
+    /// The file [`Tape::output`]  should write to.
     stdout: Box<dyn io::Write>,
 }
 
@@ -42,7 +50,7 @@ impl Tape {
         }
     }
 
-    /// Moves the cell pointer to the right by the specified amount.
+    /// Moves the cell pointer to the right by a specific amount.
     pub fn right_by(&mut self, amount: isize) {
         self.pointer += amount;
     }
@@ -55,7 +63,7 @@ impl Tape {
         (min(self.values.len(), isize::MAX as usize) as isize) - self.origin - 1
     }
 
-    /// Gets the value of the cell at the specified index.
+    /// Gets the value of a cell.
     fn read_cell(&self, index: isize) -> u8 {
         if (self.first_index()..=self.last_index()).contains(&index) {
             self.values[(self.origin + index) as usize]
@@ -64,19 +72,17 @@ impl Tape {
         }
     }
 
-    /// Returns the value of the cell to the right of the pointer by the specified offset.
+    /// Returns the value of the cell to the right of the pointer by a specific offset.
     pub fn read_relative(&self, offset: isize) -> u8 {
         self.read_cell(self.pointer + offset)
     }
 
-    /// Returns the value of the current as a `u8`.
-    ///
-    /// To get the value of the current cell as a `char`, use [`Self::read_char`].
+    /// Returns the value of the current cell as a `u8`.
     pub fn read(&self) -> u8 {
         self.read_relative(0)
     }
 
-    /// Extends the tape to make the specified index valid.
+    /// Extends the tape to make the specified index valid in the underlying vector.
     fn extend_to_index(&mut self, index: isize) {
         if index > self.last_index() {
             self.values.resize((self.origin + index + 1) as usize, 0)
@@ -89,7 +95,7 @@ impl Tape {
         }
     }
 
-    /// Returns a mutable reference to the cell at the passed index.
+    /// Returns a mutable reference to a cell.
     fn get_cell(&mut self, index: isize) -> &mut u8 {
         self.extend_to_index(index);
         &mut self.values[(self.origin + index) as usize]
@@ -98,8 +104,8 @@ impl Tape {
     /// Returns a mutable reference to the slice from `from` to `to` (both included).
     fn get_slice(&mut self, from: isize, to: isize) -> &mut [u8] {
         assert!(from <= to);
-        self.extend_to_index(from);
         self.extend_to_index(to);
+        self.extend_to_index(from);
         let (i, j) = ((self.origin + from) as usize, (self.origin + to) as usize);
         &mut self.values[i..=j]
     }
@@ -116,7 +122,7 @@ impl Tape {
     }
 
     /// Fills the values of the cells between the current cell and the cell to the right of the
-    /// pointer by the specified offset (both included) with the provided value.
+    /// pointer by the specified offset (both included) with a specific value.
     pub fn fill(&mut self, max_offset: isize, value: u8) {
         let from = min(self.pointer, self.pointer + max_offset);
         let to = max(self.pointer, self.pointer + max_offset);
@@ -124,7 +130,7 @@ impl Tape {
         slice.fill(value)
     }
 
-    /// Adds the passed amount to the value of the cell to the right of the pointer by the specified
+    /// Adds a specific amount to the value of the cell to the right of the pointer by the specified
     /// offset.
     pub fn add(&mut self, offset: isize, amount: u8) {
         let cell = self.get_cell(self.pointer + offset);
