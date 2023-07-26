@@ -21,7 +21,7 @@ The following paragraphs describe patterns that are currently detected and optim
 
 ### Successive `+`, `-`, `<`, and `>`
 
-When a sequence of more than one `+` (resp., `-`, `<`, `>`) is found, the amount of times the instruction appears is only counted once, and the sequence is reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example, the following sequences are reduced to a single operation:
+When a sequence of more than one `+` (resp., `-`, `<`, `>`) is found, the amount of times the instruction appears is only counted once, and the sequence is reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example, the following sequences of instructions are reduced to single commands:
 
 | Original instructions | Optimized command |
 |-----------------------|-------------------|
