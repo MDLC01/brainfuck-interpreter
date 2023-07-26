@@ -19,13 +19,22 @@ Here is a non-exhaustive list of criteria a pattern should fulfill in order for 
 
 The following paragraphs describe patterns that are currently detected and optimized.
 
-### Adjacent opposite instructions
+### Successive `+`, `-`, `<`, and `>`
 
-Adjacent opposite instructions are instructions that trivially cancel each other (namely: `+-`, `-+`, `><`, and `<>`). They are completely removed by the optimizer.
+When a sequence of more than one `+` (resp., `-`, `<`, `>`) is found, the amount of times the instruction appears is only counted once, and the sequence is reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example, the following sequences are reduced to a single operation:
 
-### Too many {in,de}crements / lefts / rights
+| Original instructions | Optimized command |
+|-----------------------|-------------------|
+| `++++++`              | `Add(6)`          |
+| `----`                | `Add(252)`        |
+| `-++-+`               | `Add(1)`          |
+| `>>>`                 | `Right(3)`        |
+| `<<<<`                | `Right(-4)`       |
+| `<<<>`                | `Right(-2)`       |
 
-When a sequence of more than one increment (resp., decrement, left, right) is found, the amount of times the instruction appears is only counted once, and reduced to a single command that increments (resp., decrements, moves the pointer to the left, to the right) by this amount. For example `+++++` is reduced to a single `Add(5)` command, while `>>>>` is reduced to a single `Right(4)` command. This is especially efficient for deeply-nested instructions.
+This is especially efficient for deeply-nested instructions, as we only need to count them once, instead of every time we execute them.
+
+As a side effect, instructions that trivially cancel each other (namely: `+-`, `-+`, `><`, and `<>`) are completely removed.
 
 ### Resets
 
