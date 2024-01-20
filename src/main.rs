@@ -332,5 +332,8 @@ fn main() {
 
     let optimized_commands = time("Optimizing", args.time, || optimize(commands, &args));
 
-    time("Running", args.time, || execute(&optimized_commands, &mut Tape::new(args.hex_output)));
+    time("Running", args.time, || {
+        let mut tape = Tape::new(args.hex_output, args.no_output);
+        execute(&optimized_commands, &mut tape)
+    });
 }

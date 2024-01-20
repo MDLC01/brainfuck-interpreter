@@ -11,6 +11,13 @@ fn default_stdout() -> Box<dyn io::Write> {
     Box::new(io::stdout())
 }
 
+#[derive(Debug, Clone, Copy)]
+enum OutputMode {
+    Ascii,
+    Hex,
+    Silent,
+}
+
 /// A Brainfuck tape.
 ///
 /// It is infinitely expandable in both directions, and each cell contains a `u8`.
@@ -21,8 +28,8 @@ pub struct Tape {
     values: Vec<u8>,
     /// Index of the value that corresponds to the initial cell.
     origin: isize,
-    /// Whether [`Tape::output`] should output hex values instead of ASCII values.
-    hex_output: bool,
+    /// The output mode.
+    output_mode: OutputMode,
     /// The iterator [`Tape::input`]  should read from.
     stdin: Box<dyn Iterator<Item=u8>>,
     /// The file [`Tape::output`]  should write to.
@@ -35,7 +42,7 @@ impl Default for Tape {
             pointer: 0,
             values: Vec::new(),
             origin: 0,
-            hex_output: false,
+            output_mode: OutputMode::Ascii,
             stdin: default_stdin(),
             stdout: default_stdout(),
         }
@@ -43,9 +50,17 @@ impl Default for Tape {
 }
 
 impl Tape {
-    pub fn new(hex_output: bool) -> Self {
+    pub fn new(hex_output: bool, silent: bool) -> Self {
+        let output_mode =
+            if silent {
+                OutputMode::Silent
+            } else if hex_output {
+                OutputMode::Hex
+            } else {
+                OutputMode::Ascii
+            };
         Self {
-            hex_output,
+            output_mode,
             ..Self::default()
         }
     }
@@ -139,10 +154,10 @@ impl Tape {
 
     /// Outputs the value of the current cell to this tape's `stdout`.
     pub fn output(&mut self) {
-        if self.hex_output {
-            writeln!(self.stdout, "0x{:02x}", self.read()).unwrap()
-        } else {
-            write!(self.stdout, "{}", self.read() as char).unwrap()
+        match self.output_mode {
+            OutputMode::Ascii => write!(self.stdout, "{}", self.read() as char).unwrap(),
+            OutputMode::Hex => writeln!(self.stdout, "0x{:02x}", self.read()).unwrap(),
+            _ => {}
         }
     }
 
